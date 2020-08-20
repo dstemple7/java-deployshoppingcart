@@ -11,14 +11,17 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
@@ -26,27 +29,26 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-
 @RunWith(SpringRunner.class)
-@WebMvcTest(value = UserController.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@WithMockUser(username = "admin", roles = {"ADMIN", "USER"})
+@WithMockUser(username = "admin", roles = {"USER", "ADMIN"})
 public class UserControllerTest
 {
     @Autowired
-    private WebApplicationContext webApplicationContext;
-
     private MockMvc mockMvc;
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
     @MockBean
     private UserService userService;
 
-    private List<User> userList;
+    private List<User> userList = new ArrayList<>();
 
     @Before
     public void setUp() throws Exception
     {
-        userList = new ArrayList<>();
         User u1 = new User("test barnbarn",
             "password");
         u1.setUserid(1);
@@ -61,6 +63,10 @@ public class UserControllerTest
             "ILuvM4th!");
         u3.setUserid(3);
         userList.add(u3);
+
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .apply(SecurityMockMvcConfigurers.springSecurity())
+            .build();
     }
 
     @After
